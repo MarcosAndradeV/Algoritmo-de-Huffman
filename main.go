@@ -37,26 +37,26 @@ func main() {
 	}
 }
 
-func run(text string) {
-	println("Texto original: ", text)
-	freq := countFreqChar(text)
-	root := newHuffmanTree(freq)
-	codes := generateCodes(root)
-	encoded := encodeText(text, codes)
-	decoded := decodeBinary(encoded, root)
-	println("Texto codificado: ", encoded)
-	println("Texto decodificado: ", decoded)
-	plotTree(root)
+func run(texto string) {
+	println("Texto original: ", texto)
+	freq := contarFrequencia(texto)
+	raiz := Huffman(freq)
+	codigos := gerarCodigos(raiz)
+	codificado := codificar(texto, codigos)
+	decodificado := decodificar(codificado, raiz)
+	println("Texto codificado: ", codificado)
+	println("Texto decodificado: ", decodificado)
+	plot(raiz)
 }
 
-type Node struct {
+type No struct {
 	Char  rune
 	Freq  int
-	Left  *Node
-	Right *Node
+	Esquerdo  *No
+	Direito *No
 }
 
-func countFreqChar(s string) map[rune]int {
+func contarFrequencia(s string) map[rune]int {
 	freq := make(map[rune]int)
 	for _, char := range s {
 		freq[char]++
@@ -64,54 +64,54 @@ func countFreqChar(s string) map[rune]int {
 	return freq
 }
 
-func newHuffmanTree(freq map[rune]int) *Node {
+func Huffman(freqs map[rune]int) *No {
 	pq := make(PriorityQueue, 0)
 	heap.Init(&pq)
 
-	for char, frequency := range freq {
-		heap.Push(&pq, &Node{
+	for char, freq := range freqs {
+		heap.Push(&pq, &No{
 			Char: char,
-			Freq: frequency,
+			Freq: freq,
 		})
 	}
 
 	for pq.Len() > 1 {
-		left := heap.Pop(&pq).(*Node)
-		right := heap.Pop(&pq).(*Node)
+		left := heap.Pop(&pq).(*No)
+		right := heap.Pop(&pq).(*No)
 
-		parent := &Node{
+		parent := &No{
 			Char:  0,
 			Freq:  left.Freq + right.Freq,
-			Left:  left,
-			Right: right,
+			Esquerdo:  left,
+			Direito: right,
 		}
 		heap.Push(&pq, parent)
 	}
 
-	return heap.Pop(&pq).(*Node)
+	return heap.Pop(&pq).(*No)
 }
 
-func generateCodes(root *Node) map[rune]string {
+func gerarCodigos(root *No) map[rune]string {
 	codes := make(map[rune]string)
-	generateCodesHelper(root, "", codes)
+	gerarCodigosRec(root, "", codes)
 	return codes
 }
 
-func generateCodesHelper(node *Node, code string, codes map[rune]string) {
+func gerarCodigosRec(node *No, code string, codes map[rune]string) {
 	if node == nil {
 		return
 	}
 
-	if node.Left == nil && node.Right == nil {
+	if node.Esquerdo == nil && node.Direito == nil {
 		codes[node.Char] = code
 		return
 	}
 
-	generateCodesHelper(node.Left, code+"0", codes)
-	generateCodesHelper(node.Right, code+"1", codes)
+	gerarCodigosRec(node.Esquerdo, code+"0", codes)
+	gerarCodigosRec(node.Direito, code+"1", codes)
 }
 
-func encodeText(text string, codes map[rune]string) string {
+func codificar(text string, codes map[rune]string) string {
 	var encoded strings.Builder
 	for _, char := range text {
 		encoded.WriteString(codes[char])
@@ -119,65 +119,66 @@ func encodeText(text string, codes map[rune]string) string {
 	return encoded.String()
 }
 
-func decodeBinary(binary string, root *Node) string {
+func decodificar(binario string, raiz *No) string {
 	var decoded strings.Builder
-	current := root
+	current := raiz
 
-	for _, bit := range binary {
+	for _, bit := range binario {
 		if bit == '0' {
-			current = current.Left
+			current = current.Esquerdo
 		} else {
-			current = current.Right
+			current = current.Direito
 		}
 
-		if current.Left == nil && current.Right == nil {
+		if current.Esquerdo == nil && current.Direito == nil {
 			decoded.WriteRune(current.Char)
-			current = root
+			current = raiz
 		}
 	}
 
 	return decoded.String()
 }
 
-func plotTree(root *Node) {
+
+func plot(raiz *No) {
 	fmt.Println("\n--- Árvore de Huffman")
-	plotTreeHelper(root, "", true)
+	plotArvore(raiz, "", true)
 }
 
-func plotTreeHelper(node *Node, prefix string, isLeft bool) {
-	if node == nil {
+func plotArvore(no *No, prefixo string, esquerdo bool) {
+	if no == nil {
 		return
 	}
 
-	fmt.Print(prefix)
-	if isLeft {
+	fmt.Print(prefixo)
+	if esquerdo {
 		fmt.Print("├── ")
 	} else {
 		fmt.Print("└── ")
 	}
 
-	if node.Char != 0 {
-		fmt.Printf("'%c' (freq: %d)\n", node.Char, node.Freq)
+	if no.Char != 0 {
+		fmt.Printf("'%c' (freq: %d)\n", no.Char, no.Freq)
 	} else {
-		fmt.Printf("* (freq: %d)\n", node.Freq)
+		fmt.Printf("* (freq: %d)\n", no.Freq)
 	}
 
-	newPrefix := prefix
-	if isLeft {
-		newPrefix += "│   "
+	novoPrefixo := prefixo
+	if esquerdo {
+		novoPrefixo += "│   "
 	} else {
-		newPrefix += "    "
+		novoPrefixo += "    "
 	}
 
-	if node.Left != nil {
-		plotTreeHelper(node.Left, newPrefix, true)
+	if no.Esquerdo != nil {
+		plotArvore(no.Esquerdo, novoPrefixo, true)
 	}
-	if node.Right != nil {
-		plotTreeHelper(node.Right, newPrefix, false)
+	if no.Direito != nil {
+		plotArvore(no.Direito, novoPrefixo, false)
 	}
 }
 
-type PriorityQueue []*Node
+type PriorityQueue []*No
 
 func (pq PriorityQueue) Len() int { return len(pq) }
 
@@ -190,7 +191,7 @@ func (pq PriorityQueue) Swap(i, j int) {
 }
 
 func (pq *PriorityQueue) Push(x any) {
-	*pq = append(*pq, x.(*Node))
+	*pq = append(*pq, x.(*No))
 }
 
 func (pq *PriorityQueue) Pop() any {
