@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func readLine() string{
+func readLine() string {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		return scanner.Text()
@@ -22,10 +22,19 @@ func readLine() string{
 }
 
 func main() {
-	print("Digite uma palavra: ")
-	text := readLine()
-	println()
-	run(text)
+	for {
+		print("Digite uma palavra: ")
+		text := readLine()
+		println()
+		run(text)
+
+		print("\nQuer digitar outra? (s/n): ")
+		choice := readLine()
+		if strings.ToLower(strings.TrimSpace(choice)) != "s" {
+			break
+		}
+		println()
+	}
 }
 
 func run(text string) {
