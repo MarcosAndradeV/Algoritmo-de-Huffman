@@ -22,8 +22,13 @@ func readLine() string{
 }
 
 func main() {
-	// text := "MARADONA"
+	print("Digite uma palavra: ")
 	text := readLine()
+	println()
+	run(text)
+}
+
+func run(text string) {
 	println("Texto original: ", text)
 	freq := countFreqChar(text)
 	root := newHuffmanTree(freq)
